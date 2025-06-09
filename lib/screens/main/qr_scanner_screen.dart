@@ -38,24 +38,24 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
 
 
     Map<String, dynamic>? chatData;
-    String? encodedDataFromQR;
+    String? uuidFromQR;
 
     try {
       final uri = Uri.tryParse(code);
       if (uri != null) {
-        encodedDataFromQR = uri.queryParameters['data'];
+        uuidFromQR = uri.queryParameters['id'];
       }
 
-      if (encodedDataFromQR != null) {
-        chatData = await DeepLinkHelper.processCharacterData(encodedDataFromQR)
+      if (uuidFromQR != null) {
+        chatData = await DeepLinkHelper.processCharacterData(uuidFromQR)
             .timeout(const Duration(seconds: 20), onTimeout: () {
           print('[QRScanner][${defaultTargetPlatform.name}] _handleQRCode: DeepLinkHelper.processCharacterData 타임아웃.');
           if (mounted) _showError('캐릭터 정보 처리 시간이 초과되었습니다.');
           return null;
         });
       } else {
-        // encodedDataFromQR이 null이면 사용자에게 알림
-        if (mounted) _showError('QR 코드에서 데이터를 읽을 수 없습니다.');
+        // uuidFromQR이 null이면 사용자에게 알림
+        if (mounted) _showError('QR 코드에서 UUID를 읽을 수 없습니다.');
       }
 
       if (chatData != null && mounted) {
@@ -72,7 +72,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         );
         return; 
       } else {
-          if (mounted && encodedDataFromQR != null && chatData == null) {
+          if (mounted && uuidFromQR != null && chatData == null) {
         }
       }
     } catch (e, s) {

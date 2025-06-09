@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
 import 'package:nompangs/services/firebase_manager.dart';
 import 'package:nompangs/utils/persona_utils.dart';
 
@@ -9,17 +13,11 @@ class CharacterManager {
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // QR에서 캐릭터 처리
-  Future<String> handleCharacterFromQR(Map<String, dynamic> characterData) async {
+  // QR에서 캐릭터 처리 (사용자-캐릭터 관계만 생성)
+  Future<String> handleCharacterFromQR(String personaId) async {
     try {
       final user = await FirebaseManager.instance.getCurrentUser();
       if (user == null) throw Exception('사용자 인증 실패');
-      final personaId = PersonaUtils.generateId(
-        characterData['name'],
-        List<String>.from(characterData['tags']),
-        characterData['greeting'] ?? '',
-      );
-      await _saveQRProfile(personaId, characterData, user.uid);
       await _createUserInteraction(personaId, user.uid);
       return personaId;
     } catch (e) {
@@ -40,6 +38,36 @@ class CharacterManager {
       'totalInteractions': 0,
       'uniqueUsers': 0,
     }, SetOptions(merge: true));
+  }
+
+  // QR 프로필 저장 (Cloud Function 호출)
+  Future<String> saveCharacterForQR(Map<String, dynamic> data) async {
+    final baseUrl = dotenv.env['QR_API_BASE_URL'] ?? 'http://localhost:8080';
+    final personaId = PersonaUtils.generateId(
+      data['name'],
+      List<String>.from(data['tags']),
+      data['greeting'] ?? '',
+    );
+    final body = jsonEncode({
+      'personaId': personaId,
+      ...data,
+    });
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/createQR'),
+        headers: {'Content-Type': 'application/json'},
+        body: body,
+      );
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+        return json['uuid'] as String;
+      } else {
+        throw Exception('Failed to create QR profile: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ saveCharacterForQR 실패: $e');
+      rethrow;
+    }
   }
 
   // 사용자-캐릭터 관계 생성

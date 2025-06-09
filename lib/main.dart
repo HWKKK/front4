@@ -129,12 +129,12 @@ class _NompangsAppState extends State<NompangsApp> {
 
   void _handleDeepLink(Uri uri) async {
     final roomId = uri.queryParameters['roomId'];
-    final encodedData = uri.queryParameters['data'];
+    final uuid = uri.queryParameters['id'];
     print('📦 딥링크 수신됨! URI: $uri, roomId: $roomId');
 
     if (roomId != null) {
-      if (encodedData != null) {
-        final chatData = await DeepLinkHelper.processCharacterData(encodedData);
+      if (uuid != null) {
+        final chatData = await DeepLinkHelper.processCharacterData(uuid);
 
         if (chatData != null) {
           _navigatorKey.currentState?.pushNamed(
@@ -148,7 +148,7 @@ class _NompangsAppState extends State<NompangsApp> {
           );
         }
       } else {
-        // data 파라미터가 없는 경우
+        // id 파라미터가 없는 경우
         DeepLinkHelper.showError(
             _navigatorKey.currentContext!,
             '캐릭터 정보가 없는 QR 코드입니다.'
