@@ -1,38 +1,55 @@
 import 'package:flutter/foundation.dart';
 import 'package:nompangs/models/onboarding_state.dart';
+import 'package:nompangs/models/personality_profile.dart';
 import 'dart:math';
+import 'dart:convert';
 
 class OnboardingProvider extends ChangeNotifier {
   OnboardingState _state = const OnboardingState();
-  
+  PersonalityProfile _profile = PersonalityProfile.empty();
+
+  PersonalityProfile get personalityProfile => _profile;
+
   OnboardingState get state => _state;
+
+  void _logStatus(String action) {
+    debugPrint('=== Onboarding Status [$action] ===');
+    debugPrint(jsonEncode(_state.toJson()));
+    debugPrint(jsonEncode(_profile.toMap()));
+    debugPrint('===============================');
+  }
   
   void nextStep() {
     _state = _state.copyWith(currentStep: _state.currentStep + 1);
     notifyListeners();
+    _logStatus('nextStep');
   }
   
   void setUserInput(UserInput input) {
     _state = _state.copyWith(userInput: input);
     notifyListeners();
+    _logStatus('setUserInput');
   }
   
   /// 용도 업데이트 (Step 3)
   void updatePurpose(String purpose) {
     _state = _state.copyWith(purpose: purpose);
     notifyListeners();
+    _logStatus('updatePurpose');
   }
   
   /// 유머스타일 업데이트 (Step 3)
   void updateHumorStyle(String style) {
     _state = _state.copyWith(humorStyle: style);
     notifyListeners();
+    _logStatus('updateHumorStyle');
   }
   
   /// 사진 경로 업데이트 (Step 4)
   void updatePhotoPath(String? path) {
     _state = _state.copyWith(photoPath: path);
     notifyListeners();
+    _logStatus('updatePhotoPath');
   }
   
   /// 성격 슬라이더 업데이트 (Step 6)
@@ -49,32 +66,38 @@ class OnboardingProvider extends ChangeNotifier {
         break;
     }
     notifyListeners();
+    _logStatus('updatePersonalitySlider');
   }
   
   /// QR 코드 URL 업데이트 (완료 단계)
   void updateQRCodeUrl(String url) {
     _state = _state.copyWith(qrCodeUrl: url);
     notifyListeners();
+    _logStatus('updateQRCodeUrl');
   }
   
   void setPhotoPath(String path) {
     _state = _state.copyWith(photoPath: path);
     notifyListeners();
+    _logStatus('setPhotoPath');
   }
   
   void setGeneratedCharacter(Character character) {
     _state = _state.copyWith(generatedCharacter: character);
     notifyListeners();
+    _logStatus('setGeneratedCharacter');
   }
   
   void setError(String error) {
     _state = _state.copyWith(errorMessage: error, isLoading: false);
     notifyListeners();
+    _logStatus('setError');
   }
   
   void clearError() {
     _state = _state.copyWith(errorMessage: null);
     notifyListeners();
+    _logStatus('clearError');
   }
   
   Future<void> generateCharacter() async {
@@ -89,6 +112,7 @@ class OnboardingProvider extends ChangeNotifier {
       generationMessage: "캐릭터 깨우는 중..."
     );
     notifyListeners();
+    _logStatus('startGenerateCharacter');
     
     try {
       // 3단계 시뮬레이션 (Figma 정확)
@@ -105,6 +129,7 @@ class OnboardingProvider extends ChangeNotifier {
         generationProgress: 1.0,
       );
       notifyListeners();
+      _logStatus('generateCharacterComplete');
       
     } catch (e) {
       _state = _state.copyWith(
@@ -112,6 +137,7 @@ class OnboardingProvider extends ChangeNotifier {
         errorMessage: '캐릭터 생성 중 오류가 발생했습니다: $e'
       );
       notifyListeners();
+      _logStatus('generateCharacterError');
     }
   }
   
@@ -123,6 +149,7 @@ class OnboardingProvider extends ChangeNotifier {
         generationMessage: message,
       );
       notifyListeners();
+      _logStatus('simulateProgress');
     }
   }
   
@@ -224,10 +251,19 @@ class OnboardingProvider extends ChangeNotifier {
     
     _state = _state.copyWith(generatedCharacter: updatedCharacter);
     notifyListeners();
+    _logStatus('updatePersonality');
   }
-  
+
+  void setPersonalityProfile(PersonalityProfile profile) {
+    _profile = profile;
+    notifyListeners();
+    _logStatus('setPersonalityProfile');
+  }
+
   void reset() {
     _state = const OnboardingState();
+    _profile = PersonalityProfile.empty();
     notifyListeners();
+    _logStatus('reset');
   }
-} 
+}
