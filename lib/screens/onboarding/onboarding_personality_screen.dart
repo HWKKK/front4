@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:nompangs/providers/onboarding_provider.dart';
 import 'package:nompangs/models/onboarding_state.dart';
+import 'package:nompangs/services/personality_service.dart';
 
 class OnboardingPersonalityScreen extends StatefulWidget {
   const OnboardingPersonalityScreen({Key? key}) : super(key: key);
@@ -205,8 +206,15 @@ class _OnboardingPersonalityScreenState
                       border: Border.all(color: Colors.grey.shade400, width: 1),
                     ),
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/onboarding/completion');
+                      onPressed: () async {
+                        final provider = context.read<OnboardingProvider>();
+                        final service = const PersonalityService();
+                        final profile =
+                            await service.generateProfile(provider.state);
+                        provider.setPersonalityProfile(profile);
+                        if (mounted) {
+                          Navigator.pushNamed(context, '/onboarding/completion');
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,

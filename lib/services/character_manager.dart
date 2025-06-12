@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:nompangs/services/firebase_manager.dart';
-import 'package:nompangs/utils/persona_utils.dart';
 
 class CharacterManager {
   static CharacterManager? _instance;
@@ -43,15 +42,7 @@ class CharacterManager {
   // QR 프로필 저장 (Cloud Function 호출)
   Future<String> saveCharacterForQR(Map<String, dynamic> data) async {
     final baseUrl = dotenv.env['QR_API_BASE_URL'] ?? 'http://localhost:8080';
-    final personaId = PersonaUtils.generateId(
-      data['name'],
-      List<String>.from(data['tags']),
-      data['greeting'] ?? '',
-    );
-    final body = jsonEncode({
-      'personaId': personaId,
-      ...data,
-    });
+    final body = jsonEncode(data);
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/createQR'),
